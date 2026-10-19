@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Winnow Rescue &mdash; get coins out of any old wallet</title>
+<meta name="description" content="A rescue-only Bitcoin tool. From recovery words, a single key or another wallet's export, it finds your coins and moves them into a taproot account you already have.">
+<link rel="canonical" href="https://rescue.winnowwallet.com/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://rescue.winnowwallet.com/">
+<meta property="og:title" content="Winnow Rescue">
+<meta property="og:description" content="A rescue-only Bitcoin tool: it finds the coins in an old wallet and moves them into a taproot account you already have.">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="topbar"><div class="bar"><a class="mark" href="/" aria-label="Winnow Rescue home">winnow <b>rescue</b></a><nav class="links" aria-label="Main"><a href="#steps">How it works</a><a href="#checks">What it checks</a><a href="https://winnowwallet.com">Winnow</a><a href="https://github.com/winnowwallet/winnowrescue">GitHub &#8599;</a></nav></div></header>
+<main id="main">
+<h1>Winnow Rescue</h1>
+<p class="lede">Get the coins out of an old Bitcoin wallet and into a taproot account you already have. One job, done carefully, then it keeps nothing.</p>
+<nav class="contents" aria-label="On this page"><a href="#what">What it is</a><a href="#for">Who it is for</a><a href="#steps">Five steps</a><a href="#checks">Checks</a><a href="#never">What it never does</a><a href="#where">Where it runs</a><a href="#status">Status</a></nav>
+
+<section id="what">
+<h2>What it is</h2>
+<p>Winnow Rescue is a rescue tool, not a wallet. You give it what you have from the old wallet: recovery words, a single private key, a paper key, or an export from another wallet. It works out where that wallet kept its coins, finds them, proves to itself that they exist, and moves all of them in one transaction to an address you already own in a taproot wallet. Then it is finished.</p>
+<p>It is not for everyday use and privacy is not its design goal: it asks an indexing server where your coins are, and it tells you plainly what that server learns before it asks. Nothing in it is novel. Every check it makes is a published standard with published test vectors, which is the point for the one program that handles your raw keys.</p>
+</section>
+
+<section id="for">
+<h2>Who it is for</h2>
+<div class="table-wrap" role="region" tabindex="0" aria-label="Scrollable table"><table>
+<caption>What you have, and what Rescue does with it</caption>
+<thead><tr><th scope="col">You have</th><th scope="col">Rescue</th></tr></thead>
+<tbody>
+<tr><th scope="row">12 to 24 recovery words, with or without a passphrase</th><td>Walks the standard account paths (BIP44, 49, 84 and 86), then the paths well-known wallets used instead, until it has found every account.</td></tr>
+<tr><th scope="row">An Electrum seed</th><td>Reads Electrum's own seed format (standard and segwit). Two-factor seeds are out: a service holds one of those keys.</td></tr>
+<tr><th scope="row">A single key: WIF, a mini private key from a physical coin, or a key dump file</th><td>Checks the key's own checksum and network, then looks for coins on every address form that key can have.</td></tr>
+<tr><th scope="row">An extended key or account key</th><td>Walks the same paths from that key.</td></tr>
+<tr><th scope="row">A descriptor, a wallet policy or a shared vault made elsewhere</th><td>Finds the coins and reports them; signs where you hold a key, otherwise prepares the transaction for the device or wallet that can.</td></tr>
+<tr><th scope="row">Lightning channels, other coins, a hardware wallet with no key material</th><td>Out of scope. Rescue says so by name rather than guessing.</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="steps">
+<h2>Five steps, the same everywhere</h2>
+<ol>
+<li><strong>Enter what you have.</strong> Words, a key, or a file. A typo is named by position, never silently accepted.</li>
+<li><strong>Confirm the first address.</strong> Before anything is looked up, Rescue shows the first address of each path it will search. If one matches your old wallet, the words and the passphrase are right.</li>
+<li><strong>Find the coins.</strong> Rescue asks the indexing server you chose, with a live count and a button to search further. Every coin it reports is proved from its own transaction and block, so a server can hide coins from you but cannot invent them.</li>
+<li><strong>Review.</strong> Every coin by type and amount, the one destination address, and the exact fee in sats and as a share of the total. Hold to send.</li>
+<li><strong>Done.</strong> One transaction, every coin in, one output, nothing left behind. Rescue tells you plainly whether it is done, waiting, or stalled, and what to do next.</li>
+</ol>
+</section>
+
+<section id="checks">
+<h2>What it checks</h2>
+<ul>
+<li>Recovery words against the BIP39 wordlist and checksum; a key against its Base58Check checksum and version byte, so a test-network key never reaches a mainnet sweep.</li>
+<li>The destination against its own checksum, bech32m for taproot; a mistyped address is refused, not sent to.</li>
+<li>Each coin against the transaction that created it, the merkle proof that puts it in a block, and the proof of work on that block, all against a chain of headers Rescue has validated itself from the first block.</li>
+<li>The fee, twice: refused above a tenth of the amount, and refused when the rate is far above two independent estimates. Segwit and taproot inputs sign with the amount committed; for older inputs Rescue fetches the previous transaction first, so the fee it shows is the fee you pay.</li>
+<li>Every signature, verified again before anything is broadcast.</li>
+</ul>
+</section>
+
+<section id="never">
+<h2>What it never does</h2>
+<ul>
+<li>It never holds your coins and never makes an address of its own. The destination is always an address you brought from a wallet you already have.</li>
+<li>It never writes your words or key to disk, never puts them in a log, and never sends them anywhere. They live in memory for the session and are erased when it ends.</li>
+<li>It never runs in a web page. A seed phrase in a browser tab is the thing every rule above exists to prevent.</li>
+</ul>
+</section>
+
+<section id="where">
+<h2>Where it runs</h2>
+<p>Rescue is a small Rust program with two faces: a command-line tool, which can also sign on a computer that is kept offline, and a desktop window with the same five steps. Both run on macOS, Linux and Windows. The core is a library on its own, so a wallet can build Rescue into its own screens and finish the restore inside the wallet you are already using.</p>
+</section>
+
+<section id="status">
+<h2>Status</h2>
+<p>Winnow Rescue is being built in the open and there is nothing to download yet. The source, the test vectors and the fuzzing live at <a href="https://github.com/winnowwallet/winnowrescue">github.com/winnowwallet/winnowrescue</a>. It is made by the people behind <a href="https://winnowwallet.com">Winnow</a>, the taproot wallet for iPhone, and is a separate program: Winnow itself stays small and carries none of this.</p>
+</section>
+</main>
+<footer><div class="bar"><p>Winnow Rescue is free software under the MIT License. It handles raw keys; read what it checks before you trust it with yours.</p></div></footer>
+</body>
+</html>
