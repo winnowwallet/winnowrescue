@@ -20,6 +20,11 @@ allow = [
     "Ubuntu-font-1.0",
 ]
 confidence-threshold = 0.8
+# rust-bitcoin's hex_lit is MIT with the "no false attribs" clause (SPDX
+# MITNFA); no other crate carries it, so the allowance is for that crate alone.
+exceptions = [
+    { crate = "hex_lit", allow = ["MITNFA"] },
+]
 # An allowance a dependency does not use yet is not a finding.
 unused-allowed-license = "allow"
 

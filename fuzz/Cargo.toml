@@ -7,6 +7,9 @@ publish = false
 [package.metadata]
 cargo-fuzz = true
 
+# Own root: the main workspace excludes this crate, and a worktree nested inside the clone would be claimed by the outer workspace.
+[workspace]
+
 [dependencies]
 libfuzzer-sys = "0.4"
 rescue-core = { path = "../crates/rescue-core", features = ["fuzzing"] }
@@ -14,6 +17,27 @@ rescue-core = { path = "../crates/rescue-core", features = ["fuzzing"] }
 [[bin]]
 name = "parse_secret"
 path = "fuzz_targets/parse_secret.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "parse_destination"
+path = "fuzz_targets/parse_destination.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "parse_path"
+path = "fuzz_targets/parse_path.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "parse_dumpwallet"
+path = "fuzz_targets/parse_dumpwallet.rs"
 test = false
 doc = false
 bench = false
