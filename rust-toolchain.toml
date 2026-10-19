@@ -1,0 +1,4 @@
+# The one toolchain every check runs on. Bump it on purpose, in its own commit.
+[toolchain]
+channel = "1.99.1"
+components = ["clippy", "rustfmt"]

@@ -1,0 +1,19 @@
+[package]
+name = "rescue-fuzz"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+rescue-core = { path = "../crates/rescue-core", features = ["fuzzing"] }
+
+[[bin]]
+name = "parse_secret"
+path = "fuzz_targets/parse_secret.rs"
+test = false
+doc = false
+bench = false

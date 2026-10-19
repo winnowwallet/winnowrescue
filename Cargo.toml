@@ -1,0 +1,53 @@
+[workspace]
+resolver = "3"
+members = ["crates/rescue-core", "crates/rescue-electrum", "crates/rescue-cli", "crates/rescue-gui"]
+# The fuzz crate builds on a pinned nightly with cargo-fuzz; it is not part of
+# `cargo test --workspace`. Its findings are replayed on stable by rescue-core.
+exclude = ["fuzz"]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+rust-version = "1.99"
+license = "MIT"
+repository = "https://github.com/winnowwallet/winnowrescue"
+publish = false
+
+# One rust-bitcoin line, 0.32. secp256k1, bitcoin_hashes and hex come only
+# through `bitcoin::` re-exports; their newer standalone lines belong to the
+# next rust-bitcoin line and are never direct dependencies here.
+[workspace.dependencies]
+rescue-core = { path = "crates/rescue-core", version = "0.0.1" }
+rescue-electrum = { path = "crates/rescue-electrum", version = "0.0.1" }
+bitcoin = { version = "0.32", features = ["std", "serde"] }
+bip39 = { version = "3.0", features = ["std", "zeroize"] }
+miniscript = "13.2"
+zeroize = { version = "1.9", features = ["derive"] }
+static_assertions = "1.1"
+thiserror = "2.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+electrum-client = { version = "0.25", default-features = false, features = ["use-rustls-ring", "proxy"] }
+esplora-client = { version = "0.13", default-features = false, features = ["blocking"] }
+clap = { version = "4.6", features = ["derive"] }
+rpassword = "7.5"
+getrandom = "0.4"
+directories = "6.0"
+eframe = { version = "0.37", default-features = false, features = ["default_fonts", "glow", "wayland", "x11"] }
+egui = "0.37"
+qrcode = { version = "0.14", default-features = false }
+proptest = "1.12"
+corepc-client = "0.17"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+
+[profile.release]
+overflow-checks = true
+lto = "thin"
+codegen-units = 1
+strip = true
