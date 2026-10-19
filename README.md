@@ -8,6 +8,9 @@ its design goal; every check it makes is a published standard with vectors.
 The core is a pure Rust library that wallets embed. The standalone product is a
 desktop command-line tool and a desktop window, on macOS, Linux and Windows.
 
+The design is in [docs/design.md](docs/design.md) and the build order in
+[docs/plan.md](docs/plan.md); every agent and person working here reads those two.
+
 ## Layout
 
 | Path | Holds |
