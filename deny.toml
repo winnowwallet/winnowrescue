@@ -1,0 +1,41 @@
+# cargo-deny: advisories, licences, bans and sources for the whole workspace.
+[graph]
+all-features = false
+
+[advisories]
+yanked = "deny"
+ignore = []
+
+[licenses]
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "CC0-1.0",
+    "Unicode-3.0",
+    "OFL-1.1",
+    "Ubuntu-font-1.0",
+]
+confidence-threshold = 0.8
+# An allowance a dependency does not use yet is not a finding.
+unused-allowed-license = "allow"
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+# Path dependencies inside this workspace carry a version too; cargo-deny still
+# needs telling that a path is not a wildcard.
+allow-wildcard-paths = true
+# TLS is rustls with ring everywhere; no OpenSSL or platform TLS binding.
+deny = [
+    { crate = "openssl" },
+    { crate = "openssl-sys" },
+    { crate = "native-tls" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

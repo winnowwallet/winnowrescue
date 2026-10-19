@@ -1,0 +1,20 @@
+[package]
+name = "rescue-cli"
+description = "Winnow Rescue on the command line, with an offline signing mode"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "rescue"
+path = "src/main.rs"
+
+[dependencies]
+rescue-core.workspace = true
+clap.workspace = true
+
+[lints]
+workspace = true
