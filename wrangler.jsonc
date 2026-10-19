@@ -1,0 +1,18 @@
+{
+  // The Rescue site as a Cloudflare Worker with static assets, the way the
+  // census site is served: no Worker script, Cloudflare serves site/ as is.
+  // The custom domain below makes Cloudflare create the DNS record and the
+  // certificate itself on the first deploy.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "winnow-rescue",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./site",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none"
+  },
+  "routes": [
+    { "pattern": "rescue.winnowwallet.com", "custom_domain": true }
+  ],
+  "observability": { "enabled": true }
+}

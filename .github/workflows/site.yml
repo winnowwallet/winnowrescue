@@ -1,0 +1,41 @@
+name: site
+
+# Deploys site/ as a Cloudflare Worker with static assets (wrangler.jsonc) on
+# rescue.winnowwallet.com, the way winnowwallet/census serves its page. The
+# domain, its DNS record and certificate are created by Cloudflare on deploy.
+#   push to main      -> deploy
+#   workflow_dispatch -> the same, for the first deploy and for reruns
+#
+# Requires repo secrets: CF_API_TOKEN from the "Edit Cloudflare Workers"
+# template plus Zone -> DNS -> Edit with the winnowwallet.com zone included,
+# and CF_ACCOUNT_ID.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["site/**", "wrangler.jsonc", ".github/workflows/site.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: github.repository == 'winnowwallet/winnowrescue'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          packageManager: npm
+          wranglerVersion: "4.125.0"
+          command: deploy
