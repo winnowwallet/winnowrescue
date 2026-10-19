@@ -4,11 +4,10 @@ name: site
 # rescue.winnowwallet.com, the way winnowwallet/census serves its page. The
 # domain, its DNS record and certificate are created by Cloudflare on deploy.
 #   push to main      -> deploy
-#   workflow_dispatch -> the same, for the first deploy and for reruns
+#   workflow_dispatch -> deploy only when main is selected
 #
-# Requires repo secrets: CF_API_TOKEN from the "Edit Cloudflare Workers"
-# template plus Zone -> DNS -> Edit with the winnowwallet.com zone included,
-# and CF_ACCOUNT_ID.
+# Uses the production environment's main-only policy and required review.
+# Credential setup still requires separate approval; see docs/site-deployment.md.
 
 on:
   workflow_dispatch:
@@ -25,12 +24,25 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.repository == 'winnowwallet/winnowrescue'
+    if: >-
+      github.repository == 'winnowwallet/winnowrescue' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    environment: production
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      # Actions string comparisons ignore case; the shell check also rejects
+      # a distinct branch such as Main before checkout or credential use.
+      - name: Require the exact production branch
+        env:
+          DEPLOY_REF: ${{ github.ref }}
+        run: test "$DEPLOY_REF" = refs/heads/main
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # The job and preflight require main; retain the run's exact commit
+          # instead of resolving a moving branch tip when a run is retried.
+          ref: ${{ github.sha }}
           persist-credentials: false
       - uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
         with:
