@@ -9,6 +9,9 @@ use std::path::Path;
 fn replay(target: &str, data: &[u8]) {
     match target {
         "parse_secret" => rescue_core::fuzz_api::parse_secret(data),
+        "parse_destination" => rescue_core::fuzz_api::parse_destination(data),
+        "parse_path" => rescue_core::fuzz_api::parse_path(data),
+        "parse_dumpwallet" => rescue_core::fuzz_api::parse_dumpwallet(data),
         other => panic!("no fuzz entry point named {other}"),
     }
 }
