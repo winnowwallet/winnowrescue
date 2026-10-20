@@ -15,6 +15,8 @@ fn replay(target: &str, data: &[u8]) {
         "headers_absorb" => rescue_core::fuzz_api::headers_absorb(data),
         "merkle_fold" => rescue_core::fuzz_api::merkle_fold(data),
         "tx_boundary" => rescue_core::fuzz_api::tx_boundary(data),
+        "progress_resume" => rescue_core::fuzz_api::progress_resume(data),
+        "history_absorb" => rescue_core::fuzz_api::history_absorb(data),
         other => panic!("no fuzz entry point named {other}"),
     }
 }

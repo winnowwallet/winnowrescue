@@ -1,9 +1,10 @@
 //! The networks the core understands.
 
 use bitcoin::NetworkKind;
+use serde::{Deserialize, Serialize};
 
 /// A Bitcoin network the core can sweep on.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Network {
     /// The Bitcoin main network.
     Mainnet,

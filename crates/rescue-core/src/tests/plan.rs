@@ -15,12 +15,12 @@ use crate::{
     parse_path,
 };
 
-const WORDS: &str =
+pub const WORDS: &str =
     "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
 
 /// The address of a path below a seed, computed with rust-bitcoin's own path
 /// parser and none of this crate's template code.
-fn independent(words: &str, network: bitcoin::Network, path: &str, kind: ScriptKind) -> String {
+pub fn independent(words: &str, network: bitcoin::Network, path: &str, kind: ScriptKind) -> String {
     let mnemonic = bip39::Mnemonic::parse_normalized(words).unwrap();
     let seed = mnemonic.to_seed("");
     let master = Xpriv::new_master(network, &seed).unwrap();

@@ -4,6 +4,7 @@
 use core::fmt;
 
 use bitcoin::bip32::ChildNumber;
+use serde::{Deserialize, Serialize};
 
 use crate::error::{PathError, PlanError};
 use crate::network::Network;
@@ -41,7 +42,7 @@ impl ScriptKind {
 }
 
 /// The purpose field of a standard path, `m/purpose'/coin'/account'`.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum Purpose {
     /// BIP44, pay to public key hash.
     Bip44,
@@ -81,7 +82,7 @@ impl Purpose {
 }
 
 /// The two chains of an account: addresses given out, and change.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum Chain {
     /// Chain 0, the receiving addresses.
     External,

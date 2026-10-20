@@ -10,7 +10,7 @@ publish.workspace = true
 
 [features]
 # Entry points shared by the fuzz targets and the regression replay.
-fuzzing = []
+fuzzing = ["dep:serde_json"]
 
 [dependencies]
 bitcoin.workspace = true
@@ -19,11 +19,15 @@ zeroize.workspace = true
 static_assertions.workspace = true
 thiserror.workspace = true
 unicode-normalization.workspace = true
-# Only the compile-time proof that no secret type is Serialize.
+# Discovery's saved progress is public data and is written and read with serde;
+# the secret types are asserted not to be Serialize.
 serde.workspace = true
+# Only the fuzz entry point that reads a saved run from JSON.
+serde_json = { workspace = true, optional = true }
 
 [dev-dependencies]
 serde_json.workspace = true
+proptest.workspace = true
 
 [lints]
 workspace = true

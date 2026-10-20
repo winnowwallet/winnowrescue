@@ -18,18 +18,20 @@ use crate::{HeaderChain, MAX_BRANCH_LEN, MerkleBranch, Network, ProofError, fold
 
 /// A recorded coin: the transaction as the server gave it, the proofs as both
 /// servers gave them, and what the server's own JSON says its outputs are.
-struct Recorded {
-    txid: Txid,
-    raw: Vec<u8>,
-    header: Vec<u8>,
-    height: u32,
-    position: u32,
-    esplora: Vec<String>,
-    electrum: Vec<String>,
-    outputs: Vec<(ScriptBuf, Amount)>,
+pub struct Recorded {
+    pub txid: Txid,
+    pub raw: Vec<u8>,
+    pub header: Vec<u8>,
+    pub height: u32,
+    pub position: u32,
+    pub esplora: Vec<String>,
+    pub electrum: Vec<String>,
+    pub outputs: Vec<(ScriptBuf, Amount)>,
+    /// What the server's own JSON says about the first input.
+    pub coinbase: bool,
 }
 
-fn recorded(file: &str) -> Recorded {
+pub fn recorded(file: &str) -> Recorded {
     let json: Value = serde_json::from_str(&vector(file)).unwrap();
     let strings = |value: &Value| -> Vec<String> {
         value["merkle"]
@@ -51,6 +53,9 @@ fn recorded(file: &str) -> Recorded {
         position: u32::try_from(esplora["pos"].as_u64().unwrap()).unwrap(),
         esplora: strings(esplora),
         electrum: strings(electrum),
+        coinbase: json["esplora_tx"]["vin"][0]["is_coinbase"]
+            .as_bool()
+            .unwrap(),
         outputs: json["esplora_tx"]["vout"]
             .as_array()
             .unwrap()
@@ -65,8 +70,8 @@ fn recorded(file: &str) -> Recorded {
     }
 }
 
-const SEGWIT: &str = "bitcoin-mainnet/proof-block862000-pos1500.json";
-const COINBASE: &str = "bitcoin-mainnet/proof-block1-coinbase.json";
+pub const SEGWIT: &str = "bitcoin-mainnet/proof-block862000-pos1500.json";
+pub const COINBASE: &str = "bitcoin-mainnet/proof-block1-coinbase.json";
 
 fn segwit() -> (Recorded, MerkleBranch, HeaderChain) {
     let coin = recorded(SEGWIT);
@@ -97,6 +102,9 @@ fn a_segwit_coin_deep_in_a_block_is_proved() {
     assert_eq!(proven.script(), script.as_script());
     assert_eq!(proven.height(), 862_000);
     assert_eq!(proven.confirmations(), 864_864 - 862_000 + 1);
+    // The server's own JSON says the input is not a coinbase input.
+    assert!(!coin.coinbase);
+    assert!(!proven.is_coinbase());
 
     // The folded root is the header's merkle root.
     assert_eq!(
@@ -121,6 +129,9 @@ fn the_only_transaction_of_a_block_is_proved_with_no_hashes() {
     assert_eq!(proven.amount(), amount);
     assert_eq!(proven.height(), 1);
     assert_eq!(proven.confirmations(), 4032);
+    // The server's own JSON says the one input is a coinbase input.
+    assert!(coin.coinbase);
+    assert!(proven.is_coinbase());
     // With nothing to fold, the id is the root.
     assert_eq!(
         fold(coin.txid, &branch).to_byte_array(),
