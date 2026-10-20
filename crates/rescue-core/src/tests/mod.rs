@@ -4,16 +4,20 @@
 
 mod bip32;
 mod bip39;
+mod chains;
 mod core_key_io;
 mod derivation;
 mod destination;
 mod dumpwallet;
 mod electrum;
+mod headers;
 mod mini;
 mod paths;
 mod plan;
+mod proof;
 mod redaction;
 mod slip132;
+mod source;
 
 use std::path::Path;
 

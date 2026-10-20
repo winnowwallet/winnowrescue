@@ -120,3 +120,104 @@ pub enum PlanError {
     #[error("this session has no key tree for a path")]
     NoTree,
 }
+
+/// Why a run of block headers, or a saved copy of a chain, was refused.
+///
+/// A failure at a header names the height that header would have had. None of
+/// these carries bytes the server sent.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Error)]
+pub enum HeaderError {
+    /// The bytes are not a whole number of 80-byte headers.
+    #[error("the headers are not a whole number of 80-byte records")]
+    BadLength,
+    /// A header does not name the one before it as its parent.
+    #[error("the header at height {height} does not follow the one before it")]
+    NotLinked {
+        /// The height the header would have had.
+        height: u32,
+    },
+    /// A header carries a difficulty other than the one the rules require at
+    /// its height.
+    #[error("the header at height {height} has the wrong difficulty")]
+    WrongTarget {
+        /// The height the header would have had.
+        height: u32,
+    },
+    /// A header's hash is not below its target.
+    #[error("the header at height {height} has no valid proof of work")]
+    BadProofOfWork {
+        /// The height the header would have had.
+        height: u32,
+    },
+    /// A header's time is not later than the median of the eleven before it.
+    #[error("the header at height {height} is not later than the median of the eleven before it")]
+    TimeTooOld {
+        /// The height the header would have had.
+        height: u32,
+    },
+    /// A header at a checkpoint height is not the block the checkpoint names:
+    /// the server is on another chain.
+    #[error("the header at height {height} is not the block the checkpoint names")]
+    CheckpointMismatch {
+        /// The checkpoint height.
+        height: u32,
+    },
+    /// The chain would be longer than a height can count.
+    #[error("the chain would be longer than a height can count")]
+    TooLong,
+    /// A saved chain is shorter than its fixed parts.
+    #[error("the saved chain is truncated")]
+    CacheTruncated,
+    /// A saved chain's trailing checksum does not match its body.
+    #[error("the saved chain is damaged: its checksum does not match")]
+    CacheChecksum,
+    /// A saved chain is for another network than the one asked for.
+    #[error("the saved chain is for another network")]
+    CacheNetwork,
+    /// A saved chain's count does not match the headers it holds.
+    #[error("the saved chain's count does not match its headers")]
+    CacheCount,
+}
+
+/// Why a coin could not be proved from a transaction, a merkle branch and the
+/// header chain.
+///
+/// Like every error here, none carries the bytes it was given.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Error)]
+pub enum ProofError {
+    /// The bytes are not one whole transaction.
+    #[error("the bytes are not a transaction")]
+    Decode,
+    /// The transaction is exactly 64 bytes without its witness, the size of
+    /// two merkle nodes: it could pass for an inner node of the tree
+    /// (CVE-2012-2459), so it proves nothing.
+    #[error("a transaction of exactly 64 bytes cannot be proved")]
+    SixtyFourBytes,
+    /// The transaction does not hash to the id the server gave for it.
+    #[error("the transaction does not hash to the expected id")]
+    TxidMismatch,
+    /// The transaction has no output at that index.
+    #[error("the transaction has no such output")]
+    NoSuchOutput,
+    /// The output does not pay the expected script.
+    #[error("the output does not pay the expected script")]
+    WrongScript,
+    /// The branch names a block above the tip of the chain, which the chain
+    /// has not reached.
+    #[error("the block is above the tip of the validated chain")]
+    HeightNotInChain,
+    /// A branch has more than 32 hashes; its position is 32 bits wide, so no
+    /// real tree is that deep.
+    #[error("the merkle branch is longer than any real one")]
+    BranchTooLong,
+    /// The position has bits beyond what the branch's hashes can reach, so it
+    /// names no leaf of that tree.
+    #[error("the position is outside the tree the branch describes")]
+    PositionOutOfRange,
+    /// A hash of a branch given as text is not 64 hexadecimal characters.
+    #[error("a hash of the merkle branch is not 64 hexadecimal characters")]
+    BadBranchHash,
+    /// The branch does not lead from the transaction to the block's merkle root.
+    #[error("the merkle branch does not lead to the block's merkle root")]
+    RootMismatch,
+}

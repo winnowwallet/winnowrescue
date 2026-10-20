@@ -41,3 +41,24 @@ path = "fuzz_targets/parse_dumpwallet.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "headers_absorb"
+path = "fuzz_targets/headers_absorb.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "merkle_fold"
+path = "fuzz_targets/merkle_fold.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "tx_boundary"
+path = "fuzz_targets/tx_boundary.rs"
+test = false
+doc = false
+bench = false

@@ -59,8 +59,8 @@ carry no secret field; the only secret-bearing entry is the import.
 | # | Commit | Status |
 | --- | --- | --- |
 | 1 | `repo: workspace, toolchain pin, deny and CI matrix` | merged |
-| 2 | `core: secrets, derivation plan and input checks` | open |
-| 3 | `core: header chain and coin proofs` | |
+| 2 | `core: secrets, derivation plan and input checks` | merged |
+| 3 | `core: header chain and coin proofs` | open |
 | 4 | `core: discovery tiers, budgets and resumable progress` | |
 | 5 | `electrum: Electrum and Esplora adapters` | |
 | 6 | `core: review, sweep and signing`, with the regtest journey: the first sweep accepted by Bitcoin Core | |
