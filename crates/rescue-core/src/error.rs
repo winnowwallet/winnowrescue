@@ -3,6 +3,7 @@
 //! None of these carries any part of what the person typed: a wrong word is
 //! named by its position, never by its text, and a bad address is never echoed.
 
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 /// Why a secret was refused. The enum is small and `Copy` on purpose: it can
@@ -182,8 +183,10 @@ pub enum HeaderError {
 /// Why a coin could not be proved from a transaction, a merkle branch and the
 /// header chain.
 ///
-/// Like every error here, none carries the bytes it was given.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Error)]
+/// Like every error here, none carries the bytes it was given. A saved
+/// discovery run keeps the reason a coin was refused, so this one is also
+/// written and read back.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Error, Serialize, Deserialize)]
 pub enum ProofError {
     /// The bytes are not one whole transaction.
     #[error("the bytes are not a transaction")]
@@ -220,4 +223,40 @@ pub enum ProofError {
     /// The branch does not lead from the transaction to the block's merkle root.
     #[error("the merkle branch does not lead to the block's merkle root")]
     RootMismatch,
+}
+
+/// Why a discovery run could not start, continue or take an answer.
+///
+/// None of these carries a script, an address or anything a server sent.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Error)]
+pub enum DiscoverError {
+    /// A saved run, or the header chain, is for another network than the plan.
+    #[error("this is for another network than the plan")]
+    WrongNetwork,
+    /// A saved run was made for another set of keys than the plan holds.
+    #[error("the saved progress belongs to other keys than this plan")]
+    WrongPlan,
+    /// The session is not the one the plan was built from.
+    #[error("the secret is not the one this plan was built from")]
+    WrongSession,
+    /// A saved run is not one that a run could have saved: a number outside
+    /// the walk's limits, a lane the plan does not have, a coin twice.
+    #[error("the saved progress is not one a run could have saved")]
+    BadProgress,
+    /// The server's first block is not the genesis block of the header chain:
+    /// it is on another chain, or is another network's server.
+    #[error("the server is on another chain than the header chain")]
+    GenesisMismatch,
+    /// An answer names something the engine did not ask for.
+    #[error("the answer is not for anything that was asked")]
+    UnexpectedAnswer,
+    /// An answer does not have as many parts as the question had.
+    #[error("the answer does not have the shape of the question")]
+    AnswerShape,
+    /// A server reports more coins than any wallet holds.
+    #[error("the server reports more coins than a wallet holds")]
+    TooManyCoins,
+    /// An address of the plan could not be derived.
+    #[error(transparent)]
+    Plan(#[from] PlanError),
 }

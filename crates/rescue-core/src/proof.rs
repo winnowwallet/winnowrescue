@@ -169,6 +169,7 @@ pub struct ProvenCoin {
     script: ScriptBuf,
     height: u32,
     confirmations: u32,
+    coinbase: bool,
 }
 
 impl ProvenCoin {
@@ -201,6 +202,14 @@ impl ProvenCoin {
     #[must_use]
     pub const fn confirmations(&self) -> u32 {
         self.confirmations
+    }
+
+    /// Whether the output is a block reward: its transaction has one input,
+    /// and that input spends the null output. Such a coin cannot be spent
+    /// until 100 blocks bury it.
+    #[must_use]
+    pub const fn is_coinbase(&self) -> bool {
+        self.coinbase
     }
 }
 
@@ -273,5 +282,6 @@ pub fn prove(
         script: output.script_pubkey.clone(),
         height: branch.height,
         confirmations,
+        coinbase: tx.is_coinbase(),
     })
 }

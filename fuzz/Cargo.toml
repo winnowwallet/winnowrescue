@@ -62,3 +62,17 @@ path = "fuzz_targets/tx_boundary.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "progress_resume"
+path = "fuzz_targets/progress_resume.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "history_absorb"
+path = "fuzz_targets/history_absorb.rs"
+test = false
+doc = false
+bench = false

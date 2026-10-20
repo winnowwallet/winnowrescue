@@ -4,9 +4,12 @@
 use static_assertions::assert_obj_safe;
 
 use super::chains::{MAINNET_FILES, concat, rows};
-use crate::{HEADER_SIZE, HeaderChain, Headers, Network, SourceError};
+use crate::{
+    Broadcaster, HEADER_SIZE, HeaderChain, Headers, HistorySource, Network, ScriptSource,
+    SourceError,
+};
 
-assert_obj_safe!(Headers);
+assert_obj_safe!(Headers, HistorySource, Broadcaster, ScriptSource);
 
 /// Serves the recorded headers from height 0.
 struct Recorded {

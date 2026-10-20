@@ -60,8 +60,8 @@ carry no secret field; the only secret-bearing entry is the import.
 | --- | --- | --- |
 | 1 | `repo: workspace, toolchain pin, deny and CI matrix` | merged |
 | 2 | `core: secrets, derivation plan and input checks` | merged |
-| 3 | `core: header chain and coin proofs` | open |
-| 4 | `core: discovery tiers, budgets and resumable progress` | |
+| 3 | `core: header chain and coin proofs` | merged |
+| 4 | `core: discovery tiers, budgets and resumable progress` | open |
 | 5 | `electrum: Electrum and Esplora adapters` | |
 | 6 | `core: review, sweep and signing`, with the regtest journey: the first sweep accepted by Bitcoin Core | |
 | 7 | `cli: the five steps and the offline signing mode`: the first mainnet sweep possible | |

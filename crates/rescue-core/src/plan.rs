@@ -7,9 +7,10 @@ use core::fmt;
 use bitcoin::Address;
 use bitcoin::bip32::{ChildNumber, Xpriv};
 use bitcoin::hashes::{Hash, sha256};
-use bitcoin::hex::DisplayHex;
+use bitcoin::hex::{DisplayHex, FromHex};
 use bitcoin::key::CompressedPublicKey;
 use bitcoin::secp256k1::{All, PublicKey, Secp256k1};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::error::PlanError;
 use crate::keys::Compression;
@@ -111,6 +112,22 @@ impl PlanFingerprint {
     #[must_use]
     pub const fn as_bytes(&self) -> &[u8; 32] {
         &self.0
+    }
+}
+
+/// Written as the 64 hexadecimal characters it displays as.
+impl Serialize for PlanFingerprint {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.collect_str(self)
+    }
+}
+
+impl<'de> Deserialize<'de> for PlanFingerprint {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let text = String::deserialize(deserializer)?;
+        <[u8; 32]>::from_hex(&text)
+            .map(Self)
+            .map_err(serde::de::Error::custom)
     }
 }
 
@@ -351,6 +368,68 @@ impl Plan {
             _ => return Err(PlanError::NoTree),
         };
         Ok(render(&self.secp, self.network, &key, branch.kind))
+    }
+
+    /// The address at `index` of `chain` of account `account` of a standard
+    /// purpose, for any account, not only the ones the plan lists. The keys
+    /// come from the root the plan's branches of that purpose come from.
+    ///
+    /// # Errors
+    ///
+    /// [`PlanError::NoTree`] when the plan has no standard-purpose branch for
+    /// `purpose` (an account key or loose keys, or a declared script kind of
+    /// another purpose), [`PlanError::IndexTooLarge`] for an account or index
+    /// of 2147483648 or more, and [`PlanError::Derivation`] if the key cannot
+    /// be derived.
+    pub fn account_address(
+        &self,
+        session: &Session,
+        purpose: Purpose,
+        account: u32,
+        chain: Chain,
+        index: u32,
+    ) -> Result<Address, PlanError> {
+        let model = self
+            .branches
+            .iter()
+            .find(|branch| matches!(branch.origin, Origin::Purpose { purpose: p, .. } if p == purpose))
+            .ok_or(PlanError::NoTree)?;
+        let root = Self::root_of(session, model.source).ok_or(PlanError::NoTree)?;
+        let steps = [
+            ChildNumber::from_hardened_idx(purpose.number()),
+            ChildNumber::from_hardened_idx(self.network.coin_type()),
+            ChildNumber::from_hardened_idx(account),
+            ChildNumber::from_normal_idx(chain.number()),
+            ChildNumber::from_normal_idx(index),
+        ]
+        .into_iter()
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|_| PlanError::IndexTooLarge)?;
+        let key = with_key(&self.secp, root, &steps, |x| {
+            PublicKey::from_secret_key(&self.secp, &x.private_key)
+        })?;
+        Ok(render(
+            &self.secp,
+            self.network,
+            &key,
+            purpose.script_kind(),
+        ))
+    }
+
+    /// Whether `session` is the one this plan was built from: every tier-1
+    /// branch, derived again from the session, gives the first address the
+    /// plan holds. Whatever the fingerprint covers is covered here.
+    #[must_use]
+    pub fn belongs_to(&self, session: &Session) -> bool {
+        session.network() == self.network
+            && self
+                .branches
+                .iter()
+                .filter(|branch| branch.tier == Tier::One)
+                .all(|branch| {
+                    self.address(session, branch, 0)
+                        .is_ok_and(|address| address == branch.first_address)
+                })
     }
 
     fn root_of(session: &Session, source: Source) -> Option<&RootKey> {

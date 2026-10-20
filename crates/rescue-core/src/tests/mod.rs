@@ -8,6 +8,7 @@ mod chains;
 mod core_key_io;
 mod derivation;
 mod destination;
+mod discover;
 mod dumpwallet;
 mod electrum;
 mod headers;
