@@ -12,6 +12,9 @@ fn replay(target: &str, data: &[u8]) {
         "parse_destination" => rescue_core::fuzz_api::parse_destination(data),
         "parse_path" => rescue_core::fuzz_api::parse_path(data),
         "parse_dumpwallet" => rescue_core::fuzz_api::parse_dumpwallet(data),
+        "headers_absorb" => rescue_core::fuzz_api::headers_absorb(data),
+        "merkle_fold" => rescue_core::fuzz_api::merkle_fold(data),
+        "tx_boundary" => rescue_core::fuzz_api::tx_boundary(data),
         other => panic!("no fuzz entry point named {other}"),
     }
 }
